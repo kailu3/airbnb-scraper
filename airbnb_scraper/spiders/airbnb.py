@@ -2,6 +2,7 @@
 import scrapy
 import json
 import collections
+import re
 from scrapy_splash import SplashRequest
 from airbnb_scraper.items import AirbnbScraperItem
 
@@ -10,6 +11,7 @@ class AirbnbSpider(scrapy.Spider):
     name = 'airbnb'
     allowed_domains = ['www.airbnb.com']
 
+    # TODO: WRITE METHOD HEADER
     def start_requests(self):
         url = (
         'https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web'
@@ -44,7 +46,6 @@ class AirbnbSpider(scrapy.Spider):
         for home in homes:
             room_id = str(home.get('listing').get('id'))
             url = base_url + str(home.get('listing').get('id'))
-            # Map price for specific home to each url
             data_dict[room_id]['url'] = url
             data_dict[room_id]['price'] = home.get('pricing_quote').get('rate').get('amount')
             data_dict[room_id]['bathrooms'] = home.get('listing').get('bathrooms')
@@ -79,7 +80,8 @@ class AirbnbSpider(scrapy.Spider):
                                 meta=data_dict.get(room_id),
                                 endpoint="render.html",
                                 args={'wait': '0.5'})
-        
+    
+    # TODO: WRITE METHOD HEADER
     # This method parses all the information from one listing
     def parse_details(self, response):
 
@@ -87,6 +89,9 @@ class AirbnbSpider(scrapy.Spider):
         listing = AirbnbScraperItem()
 
         # Fill in fields for Instance from initial scrapy call
+        listing['host_languages'] = response.meta['host_languages']
+        listing['is_superhost'] = response.meta['is_superhost']
+        listing['host_id'] = str(response.meta['host_id'])
         listing['price'] = response.meta['price']
         listing['url'] = response.meta['url']
         listing['bathrooms'] = response.meta['bathrooms']
@@ -112,8 +117,44 @@ class AirbnbSpider(scrapy.Spider):
         listing['amt_w_service'] = response.meta['amt_w_service']
         listing['rate_type'] = response.meta['rate_type']
 
-        # Other fields from html response.text
+        # Other fields scraped from html response.text using regex (some might fail hence try/catch)
+        try:
+            listing['num_beds'] = int((re.search('"bed_label":"(.).*","bedroom_label"', response.text)).group(1))
+        except:
+            listing['num_beds'] = 0
 
+        try:
+            listing['host_reviews'] = int((re.search(r'"badges":\[{"count":(.*?),"id":"reviews"',
+                                      response.text)).group(1))
+        except:
+            listing['host_reviews'] = 0
+
+        # Main six rating metrics + overall_guest_satisfication
+        try:
+            listing['accuracy'] = int((re.search('"accuracy_rating":(.*?),"', response.text)).group(1))
+            listing['checkin'] = int((re.search('"checkin_rating":(.*?),"', response.text)).group(1))
+            listing['cleanliness'] = int((re.search('"cleanliness_rating":(.*?),"', response.text)).group(1))
+            listing['communication'] = int((re.search('"communication_rating":(.*?),"', response.text)).group(1))
+            listing['value'] = int((re.search('"value_rating":(.*?),"', response.text)).group(1))
+            listing['location'] = int((re.search('"location_rating":(.*?),"', response.text)).group(1))
+            listing['guest_satisfication'] = int((re.search('"guest_satisfaction_overall":(.*?),"',
+                                             response.text)).group(1))
+        except:
+            listing['accuracy'] = 0
+            listing['checkin'] = 0
+            listing['cleanliness'] = 0
+            listing['communication'] = 0
+            listing['value'] = 0
+            listing['location'] = 0
+            listing['guest_satisfication'] = 0
+
+        # Extra Host Fields
+        try:
+            listing['response_rate'] = int((re.search('"response_rate_without_na":"(.*?)%",', response.text)).group(1))
+            listing['response_time'] = (re.search('"response_time_without_na":"(.*?)",', response.text)).group(1)
+        except:
+            listing['response_rate'] = 0
+            listing['response_time'] = ''
 
         # Finally yield the object
         yield listing

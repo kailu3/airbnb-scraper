@@ -40,8 +40,17 @@ class AirbnbScraperItem(scrapy.Item):
     weekly_price_factor = scrapy.Field()
     bathrooms = scrapy.Field()
     bedrooms = scrapy.Field()
-
-
+    num_beds = scrapy.Field()
+    accuracy = scrapy.Field()
+    communication = scrapy.Field()
+    cleanliness = scrapy.Field()
+    location = scrapy.Field()
+    checkin = scrapy.Field()
+    value = scrapy.Field()
+    guest_satisfication = scrapy.Field()
+    host_reviews = scrapy.Field()
+    response_rate = scrapy.Field()
+    response_time = scrapy.Field()
 
 
 
