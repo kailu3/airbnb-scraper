@@ -11,8 +11,12 @@ class AirbnbSpider(scrapy.Spider):
     name = 'airbnb'
     allowed_domains = ['www.airbnb.com']
 
-    # TODO: WRITE METHOD HEADER
     def start_requests(self):
+        '''Sends a scrapy request to the designated url (preferbly first page of listings)
+
+        Args:
+        Returns:
+        '''
         url = (
         'https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web'
         '&_intents=p1&adults=0&allow_override%5B%5D=&auto_ib=false&children=0'
@@ -28,20 +32,24 @@ class AirbnbSpider(scrapy.Spider):
 
     # This method parses all the urls 
     def parse_id(self, response):
+        '''Parses all the URLs/ids/available fields from the initial json object and stores into dictionary
+
+        Args:
+            response: Json object from explore_tabs
+        Returns:
+        '''
         
         # Fetch and Write the response data
         data = json.loads(response.body)
 
         # Return a List of all homes
         try: 
-            homes = data.get('explore_tabs')[0].get('sections')[2].get('listings')
+            homes = data.get('explore_tabs')[0].get('sections')[2].get('listings') # To avoid Airbnb Plus Listings
         except:
             homes = data.get('explore_tabs')[0].get('sections')[0].get('listings')
         
-
         base_url = 'https://www.airbnb.com/rooms/'
-
-        data_dict = collections.defaultdict(dict)
+        data_dict = collections.defaultdict(dict) # Create Dictionary to put all currently available fields in
 
         for home in homes:
             room_id = str(home.get('listing').get('id'))
@@ -81,10 +89,15 @@ class AirbnbSpider(scrapy.Spider):
                                 endpoint="render.html",
                                 args={'wait': '0.5'})
     
-    # TODO: WRITE METHOD HEADER
-    # This method parses all the information from one listing
-    def parse_details(self, response):
 
+    def parse_details(self, response):
+        '''Parses details for a single listing page and stores into AirbnbScraperItem object
+
+        Args:
+            response: The response from the page (same as inspecting page source)
+        Returns:
+            An AirbnbScraperItem object containing the set of fields pertaining to the listing
+        '''
         # New Instance
         listing = AirbnbScraperItem()
 
@@ -156,5 +169,5 @@ class AirbnbSpider(scrapy.Spider):
             listing['response_rate'] = 0
             listing['response_time'] = ''
 
-        # Finally yield the object
+        # Finally return the object
         yield listing
