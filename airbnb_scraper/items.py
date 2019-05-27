@@ -15,7 +15,6 @@ def remove_unicode(value):
 class AirbnbScraperItem(scrapy.Item):
 
     # Host Fields
-    host_languages = scrapy.Field()
     is_superhost = scrapy.Field()
     host_id = scrapy.Field()
 

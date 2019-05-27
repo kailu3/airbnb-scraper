@@ -6,31 +6,53 @@ import re
 from scrapy_splash import SplashRequest
 from airbnb_scraper.items import AirbnbScraperItem
 
+# IMPORTANT: RUN DOCKER AND SCRAPY SPLASH IN BACKGROUND BEFORE RUNNING THIS FILE
+
+# Global Variables
+price_min = 0
+price_max = 0
+counter = 0
 
 class AirbnbSpider(scrapy.Spider):
     name = 'airbnb'
     allowed_domains = ['www.airbnb.com']
 
     def start_requests(self):
-        '''Sends a scrapy request to the designated url (preferbly first page of listings)
+        '''Sends a scrapy request to the designated url (preferably first page of listings)
 
         Args:
         Returns:
         '''
-        url = (
-        'https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web'
-        '&_intents=p1&adults=0&allow_override%5B%5D=&auto_ib=false&children=0'
-        '&client_session_id=7c313cb9-183b-47a1-a687-7c96d5ee391a&currency=CAD&experiences_per_grid=20'
-        '&fetch_filters=true&guests=0&guidebooks_per_grid=20&has_zero_guest_treatment=true&infants=0'
-        '&is_guided_search=true&is_new_cards_experiment=true&is_standard_search=true&items_offset=18&items_per_grid=18'
-        '&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false'
-        '&metadata_only=false&place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&query=Vancouver%2C%20BC%2C%20Canada'
-        '&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=G4F7MNfG&satori_version=1.1.9'
-        '&screen_height=797&screen_size=medium&screen_width=885&search_type=PAGINATION&section_offset=8'
-        '&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true&timezone_offset=-240&version=1.5.6')
-        yield scrapy.Request(url=url, callback=self.parse_id)
+        # For interest of project, will only look at listings in interval [20, 1000]
+        for price in range(21, 52, 10): #TODO: CHANGEEEE LATER
+            # for price in range(21, 21, 10)
+            global price_min
+            global price_max # Need to refactor and avoid using this if have time
+            global counter
 
-    # This method parses all the urls 
+            counter = 0
+            price_min = price
+            price_max = price + 9
+
+            url = ('https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1'
+                  '&allow_override%5B%5D=&auto_ib=false&client_session_id='
+                  '621cf853-d03e-4108-b717-c14962b6ab8b&currency=CAD&experiences_per_grid=20&fetch_filters=true'
+                  '&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true'
+                  '&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18'
+                  '&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false&'
+                  'place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&query=Vancouver%2C%20BC%2C%20Canada'
+                  '&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=QLb9RB7g'
+                  '&satori_version=1.1.9&screen_height=797&screen_size=medium&screen_width=885'
+                  '&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true'
+                  '&timezone_offset=-240&version=1.5.6'
+                  '&price_min={0}&price_max={1}')
+            url = url.format(price_min, price_max)
+
+            if (price_min == 990):
+                url = 'https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1&allow_override%5B%5D=&auto_ib=false&client_session_id=02b845bc-46f6-48ad-8975-9814f4d47612&currency=CAD&experiences_per_grid=20&fetch_filters=true&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false&place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&price_min=999&query=Vancouver%2C%20BC%2C%20Canada&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=TCeXfPrn&satori_version=1.1.9&screen_height=797&screen_size=medium&screen_width=885&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true&timezone_offset=-240&version=1.5.6'
+
+            yield scrapy.Request(url=url, callback=self.parse_id)
+
     def parse_id(self, response):
         '''Parses all the URLs/ids/available fields from the initial json object and stores into dictionary
 
@@ -44,10 +66,13 @@ class AirbnbSpider(scrapy.Spider):
 
         # Return a List of all homes
         try: 
-            homes = data.get('explore_tabs')[0].get('sections')[2].get('listings') # To avoid Airbnb Plus Listings
+            homes = data.get('explore_tabs')[0].get('sections')[2].get('listings')
         except:
             homes = data.get('explore_tabs')[0].get('sections')[0].get('listings')
+            if homes is None: # massive headache here
+                homes = data.get('explore_tabs')[0].get('sections')[1].get('listings')
         
+
         base_url = 'https://www.airbnb.com/rooms/'
         data_dict = collections.defaultdict(dict) # Create Dictionary to put all currently available fields in
 
@@ -82,13 +107,44 @@ class AirbnbSpider(scrapy.Spider):
             data_dict[room_id]['rate_type'] = home.get('pricing_quote').get('rate_type')
             data_dict[room_id]['weekly_price_factor'] = home.get('pricing_quote').get('weekly_price_factor')
 
-        # Iterate through dictionary of URLs to send a SplashRequest for each
+        # Iterate through dictionary of URLs in the single page to send a SplashRequest for each
         for room_id in data_dict:
             yield SplashRequest(url=base_url+room_id, callback=self.parse_details,
                                 meta=data_dict.get(room_id),
                                 endpoint="render.html",
                                 args={'wait': '0.5'})
-    
+
+        # After scraping entire listings page, check if more pages
+        pagination_metadata = data.get('explore_tabs')[0].get('pagination_metadata')
+
+        if pagination_metadata.get('has_next_page'):
+            global counter
+            counter = counter + 1
+            print('Page ' + str(counter) + ' of Price Range ' + str(price_min) + ' to ' + str(price_max)) # TODO: Remove later
+
+            items_offset = pagination_metadata.get('items_offset')
+            section_offset = pagination_metadata.get('section_offset')
+
+            new_url = ('https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1'
+                      '&allow_override%5B%5D=&auto_ib=false&client_session_id='
+                      '621cf853-d03e-4108-b717-c14962b6ab8b&currency=CAD&experiences_per_grid=20'
+                      '&fetch_filters=true&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true'
+                      '&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18'
+                      '&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false'
+                      '&place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&query=Vancouver%2C%20BC%2C%20Canada'
+                      '&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=QLb9RB7g'
+                      '&satori_version=1.1.9&screen_height=797&screen_size=medium&screen_width=885'
+                      '&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true'
+                      '&timezone_offset=-240&version=1.5.6'
+                      '&items_offset={0}&section_offset={1}&price_min={2}&price_max={3}') # formatting
+            new_url = new_url.format(items_offset, section_offset, price_min, price_max)
+            
+            if (price_min == 990):
+                new_url = ('https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1&allow_override%5B%5D=&auto_ib=false&client_session_id=02b845bc-46f6-48ad-8975-9814f4d47612&currency=CAD&experiences_per_grid=20&fetch_filters=true&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false&place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&price_min=999&query=Vancouver%2C%20BC%2C%20Canada&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=TCeXfPrn&satori_version=1.1.9&screen_height=797&screen_size=medium&screen_width=885&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true&timezone_offset=-240&version=1.5.6'
+                           '&items_offset={0}&section_offset={1}'.format(items_offset, section_offset))
+            
+            # If there is a next page, update url and scrape from next page
+            yield scrapy.Request(url=new_url, callback=self.parse_id)
 
     def parse_details(self, response):
         '''Parses details for a single listing page and stores into AirbnbScraperItem object
@@ -102,7 +158,6 @@ class AirbnbSpider(scrapy.Spider):
         listing = AirbnbScraperItem()
 
         # Fill in fields for Instance from initial scrapy call
-        listing['host_languages'] = response.meta['host_languages']
         listing['is_superhost'] = response.meta['is_superhost']
         listing['host_id'] = str(response.meta['host_id'])
         listing['price'] = response.meta['price']
