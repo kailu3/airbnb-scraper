@@ -6,7 +6,7 @@ import time
 import pprint
 import collections
 
-with open('data21to30.json', 'r') as file:
+with open('data.json', 'r') as file:
     data = json.load(file)
 
 # Need Try/Catch for first page as sometimes has shopify plus

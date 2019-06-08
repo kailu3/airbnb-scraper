@@ -4,6 +4,7 @@ import json
 import collections
 import re
 from scrapy_splash import SplashRequest
+from scrapy.exceptions import CloseSpider
 from airbnb_scraper.items import AirbnbScraperItem
 import numpy as np
 import logging
@@ -25,11 +26,12 @@ class AirbnbSpider(scrapy.Spider):
     allowed_domains = ['www.airbnb.com']
 
     '''
-    You don't have to declare __init__ each time and can simply use self.parameter (See https://bit.ly/2Wxbkd9),
+    You don't have to override __init__ each time and can simply use self.parameter (See https://bit.ly/2Wxbkd9),
     but I find this way much more readable.
     '''
-    def __init__(self, price_lb='', price_ub='', *args,**kwargs):
+    def __init__(self, city='',price_lb='', price_ub='', *args,**kwargs):
         super(AirbnbSpider, self).__init__(*args, **kwargs)
+        self.city = city
         self.price_lb = price_lb
         self.price_ub = price_ub
 
@@ -48,12 +50,12 @@ class AirbnbSpider(scrapy.Spider):
               '&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true'
               '&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18'
               '&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false&'
-              'place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&query=Vancouver%2C%20BC%2C%20Canada'
+              'query={2}'
               '&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=QLb9RB7g'
               '&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true'
               '&timezone_offset=-240&version=1.5.6'                  
               '&price_min={0}&price_max={1}')
-        new_url = url.format(self.price_lb, self.price_ub)
+        new_url = url.format(self.price_lb, self.price_ub, self.city)
             
 
         # if (price_min == 990):
@@ -78,11 +80,12 @@ class AirbnbSpider(scrapy.Spider):
         if homes is None:
             try: 
                 homes = data.get('explore_tabs')[0].get('sections')[3].get('listings')
-            except:
-                homes = data.get('explore_tabs')[0].get('sections')[2].get('listings')
-
+            except IndexError:
+                try: 
+                    homes = data.get('explore_tabs')[0].get('sections')[2].get('listings')
+                except:
+                    raise CloseSpider("No homes available in the city and price parameters")
         
-
         base_url = 'https://www.airbnb.com/rooms/'
         data_dict = collections.defaultdict(dict) # Create Dictionary to put all currently available fields in
 
@@ -141,13 +144,13 @@ class AirbnbSpider(scrapy.Spider):
                       '&fetch_filters=true&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true'
                       '&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18'
                       '&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false'
-                      '&place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&query=Vancouver%2C%20BC%2C%20Canada'
+                      '&query={4}'
                       '&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=QLb9RB7g'
                       '&satori_version=1.1.9&screen_height=797&screen_size=medium&screen_width=885'
                       '&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true'
                       '&timezone_offset=-240&version=1.5.6'
                       '&items_offset={0}&section_offset={1}&price_min={2}&price_max={3}')
-            new_url = new_url.format(items_offset, section_offset, self.price_lb, self.price_ub)
+            new_url = new_url.format(items_offset, section_offset, self.price_lb, self.price_ub, self.city)
             
             if (int(self.price_lb) >= 990):
                 new_url = ('https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1&allow_override%5B%5D=&auto_ib=false&client_session_id=02b845bc-46f6-48ad-8975-9814f4d47612&currency=CAD&experiences_per_grid=20&fetch_filters=true&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false&place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&price_min=999&query=Vancouver%2C%20BC%2C%20Canada&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=TCeXfPrn&satori_version=1.1.9&screen_height=797&screen_size=medium&screen_width=885&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true&timezone_offset=-240&version=1.5.6'
