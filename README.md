@@ -5,17 +5,16 @@ Spider built with scrapy and ScrapySplash to crawl listings
 - [x] Spider can successfully parse one page of listings  
 - [x] Spider can successfully parse mutliple/all pages of designated location
 - [x] Spider can take price ranges as arguments (`price_lb` and `price_ub`)
-- [x] Spider can take location as argument  \\
+- [x] Spider can take location as argument  
 **Note: Airbnb only returns a maximum of ~300 listings per specific filter**
-
-Before running, make sure you have scrapy-splash running.
-See [scrapy-splash](https://github.com/scrapy-plugins/scrapy-splash)
 
 ## Set up
 
-Before running spider,
+Before running spider, remember to run scrapy-splash in the background.
 
-    $ docker run -p 8050:8050 scrapinghub/splash  
+    `docker run -p 8050:8050 scrapinghub/splash`
+
+See [scrapy-splash](https://github.com/scrapy-plugins/scrapy-splash) for installation instructions.
 
 ## Crawling
 
