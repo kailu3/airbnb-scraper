@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
-import scrapy
 import json
 import collections
 import re
-from scrapy_splash import SplashRequest
-from scrapy.exceptions import CloseSpider
-from airbnb_scraper.items import AirbnbScraperItem
 import numpy as np
 import logging
 import sys
+import scrapy
+from scrapy_splash import SplashRequest
+from scrapy.exceptions import CloseSpider
+from airbnb_scraper.items import AirbnbScraperItem
 
-# ********************************************************************************
-# Important: Run -> docker run -p 8050:8050 scrapinghub/splash before crawling   *
-# ********************************************************************************
+
+# ********************************************************************************************
+# Important: Run -> docker run -p 8050:8050 scrapinghub/splash in background before crawling *
+# ********************************************************************************************
 
 
 # *********************************************************************************************
 # Run crawler with -> scrapy crawl airbnb -o 21to25.json -a price_lb='' -a price_ub=''        *
 # *********************************************************************************************
-
-counter = 0
 
 class AirbnbSpider(scrapy.Spider):
     name = 'airbnb'
@@ -41,8 +40,7 @@ class AirbnbSpider(scrapy.Spider):
         Args:
         Returns:
         '''
-        global counter
-        counter = 0
+        counter = 0 # Counter for page counting
 
         url = ('https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1'
               '&allow_override%5B%5D=&auto_ib=false&client_session_id='
@@ -120,6 +118,7 @@ class AirbnbSpider(scrapy.Spider):
             data_dict[room_id]['rate_type'] = home.get('pricing_quote').get('rate_type')
             data_dict[room_id]['weekly_price_factor'] = home.get('pricing_quote').get('weekly_price_factor')
 
+
         # Iterate through dictionary of URLs in the single page to send a SplashRequest for each
         for room_id in data_dict:
             yield SplashRequest(url=base_url+room_id, callback=self.parse_details,
@@ -131,9 +130,8 @@ class AirbnbSpider(scrapy.Spider):
         pagination_metadata = data.get('explore_tabs')[0].get('pagination_metadata')
 
         if pagination_metadata.get('has_next_page'):
-            global counter
-            counter = counter + 1
-            print('Page ' + str(counter) + ' of Price Range ' + self.price_lb+ ' to ' + self.price_ub) 
+            # counter = counter + 1
+            # print('Page ' + str(counter) + ' of Price Range ' + self.price_lb+ ' to ' + self.price_ub) 
 
             items_offset = pagination_metadata.get('items_offset')
             section_offset = pagination_metadata.get('section_offset')
