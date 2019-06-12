@@ -1,5 +1,4 @@
 TODO:
-fix price ranges 990 and above to just involve [990, inifinity]
-add error checking to ensure that price ranges input are numerical and price_ub > price_lb
+
 added bash script to run over different price intervals and generate a file each time
 https://stackoverflow.com/questions/11005756/how-to-loop-an-executable-command-in-the-terminal-in-linux

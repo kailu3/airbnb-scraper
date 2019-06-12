@@ -40,7 +40,6 @@ class AirbnbSpider(scrapy.Spider):
         Args:
         Returns:
         '''
-        counter = 0 # Counter for page counting
 
         url = ('https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1'
               '&allow_override%5B%5D=&auto_ib=false&client_session_id='
@@ -56,8 +55,20 @@ class AirbnbSpider(scrapy.Spider):
         new_url = url.format(self.price_lb, self.price_ub, self.city)
             
 
-        # if (price_min == 990):
-        #     url = 'https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1&allow_override%5B%5D=&auto_ib=false&client_session_id=02b845bc-46f6-48ad-8975-9814f4d47612&currency=CAD&experiences_per_grid=20&fetch_filters=true&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false&place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&price_min=999&query=Vancouver%2C%20BC%2C%20Canada&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=TCeXfPrn&satori_version=1.1.9&screen_height=797&screen_size=medium&screen_width=885&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true&timezone_offset=-240&version=1.5.6'
+        if (int(self.price_lb)  >= 990):
+            url = ('https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1'
+              '&allow_override%5B%5D=&auto_ib=false&client_session_id='
+              '621cf853-d03e-4108-b717-c14962b6ab8b&currency=CAD&experiences_per_grid=20&fetch_filters=true'
+              '&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true'
+              '&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18'
+              '&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false&'
+              'query={1}'
+              '&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=QLb9RB7g'
+              '&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true'
+              '&timezone_offset=-240&version=1.5.6'                  
+              '&price_min={0}')
+            new_url = url.format(self.price_lb, self.city)
+
         yield scrapy.Request(url=new_url, callback=self.parse_id, dont_filter=True)
 
 
@@ -128,10 +139,7 @@ class AirbnbSpider(scrapy.Spider):
 
         # After scraping entire listings page, check if more pages
         pagination_metadata = data.get('explore_tabs')[0].get('pagination_metadata')
-
         if pagination_metadata.get('has_next_page'):
-            # counter = counter + 1
-            # print('Page ' + str(counter) + ' of Price Range ' + self.price_lb+ ' to ' + self.price_ub) 
 
             items_offset = pagination_metadata.get('items_offset')
             section_offset = pagination_metadata.get('section_offset')
@@ -151,8 +159,19 @@ class AirbnbSpider(scrapy.Spider):
             new_url = new_url.format(items_offset, section_offset, self.price_lb, self.price_ub, self.city)
             
             if (int(self.price_lb) >= 990):
-                new_url = ('https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1&allow_override%5B%5D=&auto_ib=false&client_session_id=02b845bc-46f6-48ad-8975-9814f4d47612&currency=CAD&experiences_per_grid=20&fetch_filters=true&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false&place_id=ChIJs0-pQ_FzhlQRi_OBm-qWkbs&price_min=999&query=Vancouver%2C%20BC%2C%20Canada&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=TCeXfPrn&satori_version=1.1.9&screen_height=797&screen_size=medium&screen_width=885&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true&timezone_offset=-240&version=1.5.6'
-                           '&items_offset={0}&section_offset={1}'.format(items_offset, section_offset))
+                url = ('https://www.airbnb.com/api/v2/explore_tabs?_format=for_explore_search_web&_intents=p1'
+                      '&allow_override%5B%5D=&auto_ib=false&client_session_id='
+                      '621cf853-d03e-4108-b717-c14962b6ab8b&currency=CAD&experiences_per_grid=20'
+                      '&fetch_filters=true&guidebooks_per_grid=20&has_zero_guest_treatment=true&is_guided_search=true'
+                      '&is_new_cards_experiment=true&is_standard_search=true&items_per_grid=18'
+                      '&key=d306zoyjsyarp7ifhu67rjxn52tv0t20&locale=en&luxury_pre_launch=false&metadata_only=false'
+                      '&query={3}'
+                      '&query_understanding_enabled=true&refinement_paths%5B%5D=%2Fhomes&s_tag=QLb9RB7g'
+                      '&satori_version=1.1.9&screen_height=797&screen_size=medium&screen_width=885'
+                      '&search_type=FILTER_CHANGE&selected_tab_id=home_tab&show_groupings=true&supports_for_you_v3=true'
+                      '&timezone_offset=-240&version=1.5.6'
+                      '&items_offset={0}&section_offset={1}&price_min={2}')
+                new_url = url.format(items_offset, section_offset, self.price_lb, self.city)
             
             # If there is a next page, update url and scrape from next page
             yield scrapy.Request(url=new_url, callback=self.parse_id)

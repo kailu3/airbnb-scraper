@@ -11,10 +11,10 @@ with open('data.json', 'r') as file:
 
 # Need Try/Catch for first page as sometimes has shopify plus
  
-homes = data.get('explore_tabs')[0].get('sections')[0].get('listings')
+#homes = data.get('explore_tabs')[0].get('sections')[0].get('listings')
 
-if homes is None:
-    homes = data.get('explore_tabs')[0].get('sections')[3].get('listings')
+#if homes is None:
+homes = data.get('explore_tabs')[0].get('sections')[3].get('listings')
 
 print(homes)
 # data_dict = collections.defaultdict(dict)
