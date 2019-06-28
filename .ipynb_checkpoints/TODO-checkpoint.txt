@@ -1,0 +1,4 @@
+TODO:
+
+added bash script to run over different price intervals and generate a file each time
+https://stackoverflow.com/questions/11005756/how-to-loop-an-executable-command-in-the-terminal-in-linux

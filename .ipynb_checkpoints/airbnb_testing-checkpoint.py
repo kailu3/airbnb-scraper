@@ -9,7 +9,7 @@ import collections
 with open('data.json', 'r') as file:
     data = json.load(file)
 
-# Need Try/Catch for first page as sometimes has airbnb plus
+# Need Try/Catch for first page as sometimes has shopify plus
  
 #homes = data.get('explore_tabs')[0].get('sections')[0].get('listings')
 
