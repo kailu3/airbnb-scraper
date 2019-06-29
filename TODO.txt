@@ -1,7 +1,0 @@
-TODO:
-
-Update README with data collection method
-
-Data Analysis on Cancun dataset
-
-
