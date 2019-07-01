@@ -32,3 +32,6 @@ Run with `scrapy crawl airbnb -o {filename}.json -a city='{cityname}' -a price_l
 **Note: Airbnb only returns a maximum of ~300 listings per specific filter (price range). To get more listings, I recommend scraping multiple times using small increments in price and concatenating the datasets.**
 
 If you would like to do multiple scrapes over a wide price range (e.g. 10-spaced intervals from 20 to 990), see `cancun.sh` which I used to crawl a large number listings for Cancún.
+
+## Acknowledgements
+I would like to thank **Ahmed Rafik** for his guidance and teachings.
