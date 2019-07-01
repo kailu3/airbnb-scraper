@@ -2,9 +2,9 @@
 
 Spider built with scrapy and ScrapySplash to crawl listings
 
-## Checklist :scroll:
+## Checklist
 
-This checklist is for personal use and isn't relevant to using the scraper. 
+*This checklist is for personal use and isn't relevant to using the scraper.*
 
 - [x] Spider can successfully parse one page of listings  
 - [x] Spider can successfully parse mutliple/all pages of designated location
@@ -19,7 +19,7 @@ Before running spider, remember to run scrapy-splash in the background.
 
 See [scrapy-splash](https://github.com/scrapy-plugins/scrapy-splash) for installation instructions.
 
-## Crawling :arrow_forward:
+## Crawling  :arrow_forward:
 
 Run with `scrapy crawl airbnb -o {filename}.json -a city='{cityname}' -a price_lb='{pricelowerbound}' -a price_ub='{priceupperbound}'`
 
