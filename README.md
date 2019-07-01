@@ -19,7 +19,7 @@ Before running spider, remember to run scrapy-splash in the background.
 
 See [scrapy-splash](https://github.com/scrapy-plugins/scrapy-splash) for installation instructions.
 
-## Crawling  :arrow_forward:
+## Crawling
 
 Run with `scrapy crawl airbnb -o {filename}.json -a city='{cityname}' -a price_lb='{pricelowerbound}' -a price_ub='{priceupperbound}'`
 
