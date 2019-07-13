@@ -46,6 +46,5 @@ Run the spider with `scrapy crawl airbnb -o {filename}.json -a city='{cityname}'
 If you would like to do multiple scrapes over a wide price range (e.g. 10-spaced intervals from 20 to 990), see `cancun.sh` which I used to crawl a large number listings for Cancún.
 
 ## Acknowledgements
+
 I would like to thank **Ahmed Rafik** for his guidance and teachings.
-
-
