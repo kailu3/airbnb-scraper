@@ -13,15 +13,27 @@ Spider built with scrapy and ScrapySplash to crawl listings
 
 ## Set up
 
-Before running spider, remember to run scrapy-splash in the background.
+Since Airbnb uses JavaScript to render content, just scrapy on its own cannot suffice sometimes. We need to use Splash as well, which is a plugin created by the Scrapy team that integrates nicely with scrapy.
 
-    docker run -p 8050:8050 scrapinghub/splash
+**To install Splash, we need to do several things:**
+1. Install [Docker](https://docs.docker.com/install/), create a Docker account (if you don't already have one), and run Docker in the background before crawling with
 
-See [scrapy-splash](https://github.com/scrapy-plugins/scrapy-splash) for installation instructions.
+```
+docker run -p 8050:8050 scrapinghub/splash
+```
+It might take a few minutes to pull the image for the first time doing this. When this is done, you can type `localhost:8050` in your browser to check if it's working. If an interface opens up, you are good to go.
+
+2. Install scrapy-splash using pip
+
+```
+pip install scrapy-splash
+```
+
+See [scrapy-splash](https://github.com/scrapy-plugins/scrapy-splash) if you run into any issues.
 
 ## Crawling
 
-Run with `scrapy crawl airbnb -o {filename}.json -a city='{cityname}' -a price_lb='{pricelowerbound}' -a price_ub='{priceupperbound}'`
+Run the spider with `scrapy crawl airbnb -o {filename}.json -a city='{cityname}' -a price_lb='{pricelowerbound}' -a price_ub='{priceupperbound}'`
 
 `cityname` refers to a valid city name
 
@@ -35,3 +47,5 @@ If you would like to do multiple scrapes over a wide price range (e.g. 10-spaced
 
 ## Acknowledgements
 I would like to thank **Ahmed Rafik** for his guidance and teachings.
+
+
